@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="vi" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>78Win Live - Automation Tool</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    :root {
+      color-scheme: dark;
+    }
+    .app-drag-region { -webkit-app-region: drag; }
+    .app-no-drag { -webkit-app-region: no-drag; }
+    @keyframes pulse-slow {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.85; transform: scale(1.02); }
+    }
+    .animate-pulse-slow { animation: pulse-slow 3s infinite ease-in-out; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+    /* Global Form Controls Styling for Dark Mode */
+    input, select, textarea {
+      color: #ffffff !important;
+      -webkit-text-fill-color: #ffffff !important;
+      caret-color: #38bdf8 !important;
+    }
+    input[type="text"],
+    input[type="password"],
+    input[type="url"],
+    input[type="search"],
+    select {
+      background-color: #0b1329 !important;
+      color: #ffffff !important;
+      -webkit-text-fill-color: #ffffff !important;
+      border: 1px solid #334155 !important;
+    }
+    input[type="text"]:focus,
+    input[type="password"]:focus,
+    input[type="url"]:focus,
+    select:focus {
+      border-color: #3b82f6 !important;
+      outline: none !important;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3) !important;
+    }
+    input::placeholder {
+      color: #64748b !important;
+      -webkit-text-fill-color: #64748b !important;
+      opacity: 1 !important;
+    }
+    select option {
+      background-color: #0f172a !important;
+      color: #ffffff !important;
+      -webkit-text-fill-color: #ffffff !important;
+      padding: 8px 12px !important;
+    }
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover, 
+    input:-webkit-autofill:focus {
+      -webkit-text-fill-color: #ffffff !important;
+      -webkit-box-shadow: 0 0 0px 1000px #0b1329 inset !important;
+      transition: background-color 5000s ease-in-out 0s;
+    }
+  </style>
+  <!-- Native Header with macOS titlebar spacing -->
+  <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-50 app-drag-region">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between pl-20 sm:pl-24">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/20 app-no-drag">
+          <span class="text-lg font-black">78</span>
+        </div>
+        <div>
+          <h1 class="text-base font-bold tracking-tight bg-gradient-to-r from-blue-400 via-sky-300 to-indigo-300 bg-clip-text text-transparent">
+            78WIN LIVE AUTOMATION TOOL
+          </h1>
+          <p class="text-[11px] text-slate-400">Desktop Edition • Playwright Stealth • Auto Attendance & Lì Xì</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3 app-no-drag">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+          Desktop App Active
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+    <!-- Grid: Top Controls -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+      <!-- Left Column: URL & Tracker Control (7 cols) -->
+      <div class="lg:col-span-7 space-y-6">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+          <div class="absolute -right-16 -top-16 w-48 h-48 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
+
+          <div class="flex items-center justify-between mb-5">
+            <h2 class="text-base font-semibold flex items-center gap-2 text-slate-200">
+              <span class="text-blue-400">🎯</span> Thiết lập Theo Dõi Livestream
+            </h2>
+            <div id="tracker-badge" class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-800 text-slate-400 border border-slate-700">
+              Chưa chạy
+            </div>
+          </div>
+
+          <form id="tracker-form" class="space-y-4" onsubmit="event.preventDefault(); toggleTracker();">
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1.5 uppercase tracking-wider">URL Livestream 78win</label>
+              <div class="relative">
+                <input 
+                  type="url" 
+                  id="live-url" 
+                  required 
+                  value="https://78win-live.pages.dev/live/78winlive-idollive"
+                  placeholder="https://78win-live.pages.dev/live/..." 
+                  class="w-full bg-slate-900 text-slate-100 placeholder-slate-500 font-medium border border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-colors shadow-inner"
+                />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1.5 uppercase tracking-wider">Tài khoản thực thi</label>
+                <select id="account-select" class="w-full bg-slate-900 text-slate-100 font-semibold border border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors cursor-pointer shadow-sm">
+                  <option value="all" class="bg-slate-900 text-emerald-400 font-bold">⚡ TẤT CẢ TÀI KHOẢN (FULL)</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1.5 uppercase tracking-wider">Tùy chọn tự động</label>
+                <div class="space-y-2 pt-1">
+                  <label class="flex items-center gap-2 cursor-pointer text-sm text-slate-300">
+                    <input type="checkbox" id="auto-attendance" checked class="rounded border-slate-700 bg-slate-950 text-blue-600 focus:ring-blue-500 w-4 h-4">
+                    <span>Tự động Điểm danh</span>
+                  </label>
+                  <label class="flex items-center gap-2 cursor-pointer text-sm text-slate-300">
+                    <input type="checkbox" id="auto-lixi" checked class="rounded border-slate-700 bg-slate-950 text-blue-600 focus:ring-blue-500 w-4 h-4">
+                    <span>Tự động Bắt & Mở Lì xì</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="pt-2">
+              <button 
+                type="submit" 
+                id="btn-toggle-tracker"
+                class="w-full py-3.5 px-6 rounded-xl font-bold text-sm shadow-lg transition-all duration-200 flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-blue-500/25 active:scale-98"
+              >
+                <span>🚀 BẮT ĐẦU THEO DÕI LIVESTREAM</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Live Metrics Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- Attendance Card -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 relative overflow-hidden">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Điểm danh (Attendance)</span>
+              <span class="text-lg">📅</span>
+            </div>
+            <div class="flex items-baseline gap-2 mb-1">
+              <span id="stat-attendance-cd" class="text-2xl font-black text-amber-400">--:--</span>
+              <span id="stat-attendance-next" class="text-xs text-slate-400">Mốc kế tiếp: --</span>
+            </div>
+            <p id="stat-attendance-detail" class="text-xs text-slate-400">Đang chờ khởi chạy tracker...</p>
+          </div>
+
+          <!-- Lì Xì Card -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 relative overflow-hidden">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Phong bao Lì xì</span>
+              <span class="text-lg">🧧</span>
+            </div>
+            <div class="flex items-baseline gap-2 mb-1">
+              <span id="stat-lixi-points" class="text-2xl font-black text-emerald-400">0 pts</span>
+              <span id="stat-lixi-count" class="text-xs text-slate-400">(0 lần nhận)</span>
+            </div>
+            <p id="stat-lixi-status" class="text-xs text-slate-400">SignalR Hub: Sẵn sàng</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Account Management (5 cols) -->
+      <div class="lg:col-span-5 space-y-6">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+          <h2 class="text-base font-semibold flex items-center gap-2 text-slate-200 mb-4">
+            <span class="text-emerald-400">👤</span> Quản lý Tài khoản (Playwright Stealth)
+          </h2>
+
+          <!-- Add Account Form -->
+          <form id="login-form" class="space-y-3 mb-6" onsubmit="event.preventDefault(); submitLogin();">
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Tài khoản</label>
+                <input 
+                  type="text" 
+                  id="login-user" 
+                  required 
+                  value="respect97"
+                  placeholder="Username" 
+                  class="w-full bg-slate-900 text-slate-100 placeholder-slate-500 font-medium border border-slate-700 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors shadow-inner"
+                />
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Mật khẩu</label>
+                <input 
+                  type="password" 
+                  id="login-pass" 
+                  required 
+                  value="K1ssmeyou"
+                  placeholder="Password" 
+                  class="w-full bg-slate-900 text-slate-100 placeholder-slate-500 font-medium border border-slate-700 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors shadow-inner"
+                />
+              </div>
+            </div>
+
+            <button 
+              type="submit" 
+              id="btn-login-submit"
+              class="w-full py-2.5 px-4 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-600/20 transition-all flex items-center justify-center gap-2"
+            >
+              <span>+ Đăng nhập & Lưu Session Mới</span>
+            </button>
+            <div id="login-progress-box" class="hidden text-xs p-3 rounded-lg bg-slate-950 border border-slate-800 text-slate-300">
+              <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-blue-400 animate-ping"></span>
+                <span id="login-progress-msg">Đang xử lý...</span>
+              </div>
+            </div>
+          </form>
+
+          <!-- Saved Accounts List -->
+          <div>
+            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Tài khoản đã lưu session</h3>
+            <div id="accounts-list" class="space-y-2.5 max-h-64 overflow-y-auto pr-1">
+              <p class="text-xs text-slate-500">Đang tải tài khoản...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Live Event Console Logs -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
+      <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/60">
+        <div class="flex items-center gap-2.5">
+          <div class="w-3 h-3 rounded-full bg-red-500/80"></div>
+          <div class="w-3 h-3 rounded-full bg-yellow-500/80"></div>
+          <div class="w-3 h-3 rounded-full bg-green-500/80"></div>
+          <span class="text-xs font-mono text-slate-400 ml-2">LIVE TERMINAL LOGS (HTTP • WS • DOM)</span>
+        </div>
+        <button onclick="clearLogs()" class="text-xs text-slate-400 hover:text-slate-200 transition-colors">
+          Xóa log
+        </button>
+      </div>
+      <div id="console-logs" class="p-6 font-mono text-xs max-h-80 overflow-y-auto space-y-1.5 bg-slate-950/80">
+        <div class="text-slate-500">[SYSTEM] Sẵn sàng lắng nghe sự kiện từ Playwright và WebSocket...</div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    let isTracking = false;
+    let pollInterval = null;
+
+    // Load initial data
+    window.addEventListener('DOMContentLoaded', () => {
+      fetchAccounts();
+      startPolling();
+    });
+
+    async function fetchAccounts() {
+      try {
+        const res = await fetch('/api/accounts');
+        const json = await res.json();
+        renderAccounts(json.accounts || []);
+      } catch (e) {
+        console.error('Error fetching accounts:', e);
+      }
+    }
+
+    function renderAccounts(accounts) {
+      const container = document.getElementById('accounts-list');
+      const select = document.getElementById('account-select');
+
+      select.innerHTML = '';
+      if (!accounts.length) {
+        container.innerHTML = '<p class="text-xs text-slate-500">Chưa có tài khoản nào được lưu.</p>';
+        select.innerHTML = '<option value="">Không có tài khoản nào</option>';
+        return;
+      }
+
+      container.innerHTML = '';
+      // Default: ALL ACCOUNTS (FULL)
+      const allOpt = document.createElement('option');
+      allOpt.value = 'all';
+      allOpt.textContent = `⚡ TẤT CẢ TÀI KHOẢN (FULL - ${accounts.length} nick: ${accounts.map(a => a.username).join(', ')})`;
+      allOpt.className = 'bg-slate-900 text-emerald-400 font-bold';
+      allOpt.selected = true; // DEFAULT!
+      select.appendChild(allOpt);
+
+      accounts.forEach(acc => {
+        // Individual Option
+        const opt = document.createElement('option');
+        opt.value = acc.username;
+        opt.textContent = `👤 ${acc.username} ${acc.vipLevel ? `(VIP ${acc.vipLevel})` : ''}`;
+        opt.className = 'bg-slate-900 text-slate-200';
+        select.appendChild(opt);
+
+        // Card
+        const card = document.createElement('div');
+        card.className = 'flex items-center justify-between p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs';
+        card.innerHTML = `
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-blue-500/20 text-blue-400 font-bold flex items-center justify-center border border-blue-500/30">
+              ${acc.username.slice(0, 2).toUpperCase()}
+            </div>
+            <div>
+              <div class="font-bold text-slate-200 flex items-center gap-2">
+                ${acc.username}
+                ${acc.vipLevel ? `<span class="px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30 text-[10px]">VIP ${acc.vipLevel}</span>` : ''}
+              </div>
+              <div class="text-[11px] ${acc.isValid ? 'text-emerald-400' : 'text-slate-500'}">
+                ${acc.isValid ? '✓ Session hợp lệ' : 'Chưa xác thực'}
+              </div>
+            </div>
+          </div>
+          <button onclick="removeAccount('${acc.username}')" class="text-slate-500 hover:text-rose-400 p-1.5 transition-colors" title="Xóa tài khoản">
+            ✕
+          </button>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    async function submitLogin() {
+      const username = document.getElementById('login-user').value.trim();
+      const password = document.getElementById('login-pass').value.trim();
+      const btn = document.getElementById('btn-login-submit');
+      const box = document.getElementById('login-progress-box');
+      const msg = document.getElementById('login-progress-msg');
+
+      if (!username || !password) return;
+
+      btn.disabled = true;
+      btn.classList.add('opacity-50', 'cursor-not-allowed');
+      box.classList.remove('hidden');
+      msg.textContent = 'Đang kích hoạt Playwright Stealth và giải mã Captcha...';
+
+      try {
+        const res = await fetch('/api/accounts/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+
+        // Poll login progress
+        const checkTimer = setInterval(async () => {
+          const stRes = await fetch('/api/accounts/login-status');
+          const st = await stRes.json();
+          if (st.message) msg.textContent = st.message;
+
+          if (!st.inProgress) {
+            clearInterval(checkTimer);
+            btn.disabled = false;
+            btn.classList.remove('opacity-50', 'cursor-not-allowed');
+            if (st.success) {
+              msg.textContent = '🎉 Đăng nhập thành công và đã lưu session!';
+              setTimeout(() => { box.classList.add('hidden'); }, 3000);
+              fetchAccounts();
+            } else {
+              msg.textContent = `Thất bại: ${st.error || 'Có lỗi xảy ra'}`;
+            }
+          }
+        }, 1000);
+
+      } catch (err) {
+        msg.textContent = `Lỗi: ${err.message}`;
+        btn.disabled = false;
+        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+      }
+    }
+
+    async function removeAccount(username) {
+      if (!confirm(`Bạn có chắc chắn muốn xóa session của ${username}?`)) return;
+      try {
+        await fetch(`/api/accounts/${username}`, { method: 'DELETE' });
+        fetchAccounts();
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function toggleTracker() {
+      const btn = document.getElementById('btn-toggle-tracker');
+      const url = document.getElementById('live-url').value.trim();
+      const username = document.getElementById('account-select').value;
+      const autoAttendance = document.getElementById('auto-attendance').checked;
+      const autoLixi = document.getElementById('auto-lixi').checked;
+
+      if (!isTracking) {
+        if (!url || !username) {
+          alert('Vui lòng nhập URL và chọn tài khoản!');
+          return;
+        }
+
+        btn.disabled = true;
+        btn.innerHTML = '<span>Đang kết nối...</span>';
+
+        try {
+          const res = await fetch('/api/tracker/start', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url, username, autoAttendance, autoLixi })
+          });
+          const data = await res.json();
+          if (data.success) {
+            isTracking = true;
+            updateTrackerUI(true);
+          } else {
+            alert(data.error);
+          }
+        } catch (e) {
+          alert(e.message);
+        } finally {
+          btn.disabled = false;
+        }
+      } else {
+        btn.disabled = true;
+        btn.innerHTML = '<span>Đang dừng...</span>';
+        try {
+          await fetch('/api/tracker/stop', { method: 'POST' });
+          isTracking = false;
+          updateTrackerUI(false);
+        } catch (e) {
+          alert(e.message);
+        } finally {
+          btn.disabled = false;
+        }
+      }
+    }
+
+    function updateTrackerUI(running) {
+      const btn = document.getElementById('btn-toggle-tracker');
+      const badge = document.getElementById('tracker-badge');
+
+      if (running) {
+        badge.className = 'px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 animate-pulse';
+        badge.textContent = 'Đang chạy';
+        btn.className = 'w-full py-3.5 px-6 rounded-xl font-bold text-sm shadow-lg transition-all duration-200 flex items-center justify-center gap-2 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white shadow-rose-600/25 active:scale-98';
+        btn.innerHTML = '<span>⏹ DỪNG THEO DÕI LIVESTREAM</span>';
+      } else {
+        badge.className = 'px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-800 text-slate-400 border border-slate-700';
+        badge.textContent = 'Chưa chạy';
+        btn.className = 'w-full py-3.5 px-6 rounded-xl font-bold text-sm shadow-lg transition-all duration-200 flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-blue-500/25 active:scale-98';
+        btn.innerHTML = '<span>🚀 BẮT ĐẦU THEO DÕI LIVESTREAM</span>';
+      }
+    }
+
+    function startPolling() {
+      if (pollInterval) clearInterval(pollInterval);
+      pollInterval = setInterval(async () => {
+        try {
+          const res = await fetch('/api/tracker/status');
+          const data = await res.json();
+          if (data) {
+            isTracking = data.isRunning;
+            updateTrackerUI(data.isRunning);
+
+            // Update stats
+            if (data.stats) {
+              const s = data.stats;
+              if (s.nextOffsetCountdown) {
+                document.getElementById('stat-attendance-cd').textContent = s.nextOffsetCountdown;
+                document.getElementById('stat-attendance-next').textContent = `Mốc: ${s.nextOffset}m`;
+                document.getElementById('stat-attendance-detail').textContent = `Đã điểm danh: ${s.attendanceLogs?.length || 0} lần`;
+              }
+              document.getElementById('stat-lixi-points').textContent = `+${s.totalRewardPoints || 0} pts`;
+              document.getElementById('stat-lixi-count').textContent = `(${s.lixiClaimed?.length || 0} lần nhận)`;
+            }
+
+            // Update Logs
+            if (data.latestLogs && data.latestLogs.length) {
+              renderLogs(data.latestLogs);
+            }
+          }
+        } catch (e) {}
+      }, 1000);
+    }
+
+    function renderLogs(logs) {
+      const container = document.getElementById('console-logs');
+      container.innerHTML = logs.map(l => {
+        let badgeColor = 'text-slate-400';
+        if (l.type.includes('SUCCESS')) badgeColor = 'text-emerald-400 font-bold';
+        else if (l.type.includes('ERROR')) badgeColor = 'text-rose-400 font-bold';
+        else if (l.type.includes('WS') || l.type.includes('LIXI')) badgeColor = 'text-sky-400 font-bold';
+        else if (l.type.includes('DOM')) badgeColor = 'text-amber-400';
+        else if (l.type.includes('ACTION')) badgeColor = 'text-purple-400 font-bold';
+
+        return `<div class="leading-relaxed">
+          <span class="text-slate-600">[${l.time}]</span> 
+          <span class="${badgeColor}">[${l.type}]</span> 
+          <span class="text-slate-300">${l.message}</span>
+        </div>`;
+      }).join('');
+    }
+
+    function clearLogs() {
+      document.getElementById('console-logs').innerHTML = '<div class="text-slate-500">[SYSTEM] Logs đã được xóa.</div>';
+    }
+  </script>
+</body>
+</html>

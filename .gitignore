@@ -1,0 +1,9 @@
+node_modules/
+dist/
+sessions/
+eng.traineddata
+test-captcha.webp
+test-login.js
+tracker.js
+.DS_Store
+*.log
