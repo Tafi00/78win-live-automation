@@ -4,6 +4,6 @@ sessions/
 eng.traineddata
 test-captcha.webp
 test-login.js
-tracker.js
+/tracker.js
 .DS_Store
 *.log
