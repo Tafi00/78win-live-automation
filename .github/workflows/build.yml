@@ -40,3 +40,16 @@ jobs:
             dist/*.exe
             dist/*.blockmap
           retention-days: 30
+
+      - name: Read version
+        id: version
+        run: echo "version=$((Get-Content package.json | ConvertFrom-Json).version)" >> $env:GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: v${{ steps.version.outputs.version }}
+          files: |
+            dist/*.exe
+          generate_release_notes: true
