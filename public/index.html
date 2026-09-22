@@ -501,6 +501,20 @@
                 document.getElementById('stat-attendance-cd').textContent = s.nextOffsetCountdown;
                 document.getElementById('stat-attendance-next').textContent = `Mốc: ${s.nextOffset}m`;
                 document.getElementById('stat-attendance-detail').textContent = `Đã điểm danh: ${s.attendanceLogs?.length || 0} lần`;
+              } else if (data.isRunning) {
+                if (s.streamInfo) {
+                  document.getElementById('stat-attendance-cd').textContent = '--:--';
+                  document.getElementById('stat-attendance-next').textContent = 'Đã hết mốc';
+                  document.getElementById('stat-attendance-detail').textContent = `Đã điểm danh: ${s.attendanceLogs?.length || 0} lần (Phiên đã qua hết các mốc)`;
+                } else {
+                  document.getElementById('stat-attendance-cd').textContent = '...';
+                  document.getElementById('stat-attendance-next').textContent = 'Đang kết nối';
+                  document.getElementById('stat-attendance-detail').textContent = 'Đang tải livestream & đồng bộ mốc điểm danh...';
+                }
+              } else {
+                document.getElementById('stat-attendance-cd').textContent = '--:--';
+                document.getElementById('stat-attendance-next').textContent = 'Mốc kế tiếp: --';
+                document.getElementById('stat-attendance-detail').textContent = 'Đang chờ khởi chạy tracker...';
               }
               document.getElementById('stat-lixi-points').textContent = `+${s.totalRewardPoints || 0} pts`;
               document.getElementById('stat-lixi-count').textContent = `(${s.lixiClaimed?.length || 0} lần nhận)`;
