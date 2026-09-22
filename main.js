@@ -7,7 +7,8 @@ const PORT = process.env.PORT || 3300;
 
 function isServerRunning(port) {
   return new Promise((resolve) => {
-    const req = http.get(`http://localhost:${port}/api/accounts`, (res) => {
+    const req = http.get(`http://localhost:${port}/api/ping`, (res) => {
+      res.resume();
       resolve(res.statusCode === 200);
     });
     req.on('error', () => resolve(false));
@@ -48,8 +49,9 @@ async function startServerIfNeeded() {
 
   console.log(`[ELECTRON] Khởi động Express server trên port ${PORT}...`);
   let bootError = null;
+  let serverModule = null;
   try {
-    require('./server.js');
+    serverModule = require('./server.js');
   } catch (e) {
     bootError = e;
     console.error('[ELECTRON] Lỗi khi start server:', e);
@@ -58,6 +60,9 @@ async function startServerIfNeeded() {
   // Wait until the server actually accepts connections (max ~15s)
   for (let i = 0; i < 30; i++) {
     if (await isServerRunning(PORT)) return;
+    if (serverModule && serverModule.listenError) {
+      throw new Error(`Không listen được trên port ${PORT}: ${serverModule.listenError.message}\n(Có thể port đang bị chương trình khác chiếm — thử đóng app cũ hoặc đổi biến môi trường PORT.)`);
+    }
     await new Promise(r => setTimeout(r, 500));
   }
 

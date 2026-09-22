@@ -21,6 +21,11 @@ let loginStatus = {
   success: false
 };
 
+// Lightweight health check for the Electron launcher (no I/O, no network)
+app.get('/api/ping', (req, res) => {
+  res.json({ ok: true });
+});
+
 // 1. ACCOUNTS APIS
 app.get('/api/accounts', async (req, res) => {
   try {
@@ -117,9 +122,13 @@ app.use((req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log('====================================================');
   console.log(`🚀 78WIN LIVE AUTOMATION TOOL IS RUNNING`);
   console.log(`🌐 Dashboard URL: http://localhost:${PORT}`);
   console.log('====================================================');
+});
+server.on('error', (err) => {
+  console.error(`[SERVER] Không listen được trên port ${PORT}:`, err.message);
+  module.exports.listenError = err;
 });
