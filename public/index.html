@@ -497,20 +497,14 @@
             // Update stats
             if (data.stats) {
               const s = data.stats;
-              if (s.nextOffsetCountdown) {
+              if (s.nextOffsetCountdown && s.nextOffsetCountdown !== '--:--') {
                 document.getElementById('stat-attendance-cd').textContent = s.nextOffsetCountdown;
                 document.getElementById('stat-attendance-next').textContent = `Mốc: ${s.nextOffset}m`;
-                document.getElementById('stat-attendance-detail').textContent = `Đã điểm danh: ${s.attendanceLogs?.length || 0} lần`;
+                document.getElementById('stat-attendance-detail').textContent = s.attendanceStatus || `Đã điểm danh: ${s.attendanceLogs?.length || 0} lần`;
               } else if (data.isRunning) {
-                if (s.streamInfo) {
-                  document.getElementById('stat-attendance-cd').textContent = '--:--';
-                  document.getElementById('stat-attendance-next').textContent = 'Đã hết mốc';
-                  document.getElementById('stat-attendance-detail').textContent = `Đã điểm danh: ${s.attendanceLogs?.length || 0} lần (Phiên đã qua hết các mốc)`;
-                } else {
-                  document.getElementById('stat-attendance-cd').textContent = '...';
-                  document.getElementById('stat-attendance-next').textContent = 'Đang kết nối';
-                  document.getElementById('stat-attendance-detail').textContent = 'Đang tải livestream & đồng bộ mốc điểm danh...';
-                }
+                document.getElementById('stat-attendance-cd').textContent = s.nextOffsetCountdown || '--:--';
+                document.getElementById('stat-attendance-next').textContent = s.nextOffset ? (s.nextOffset === 'Đã hết mốc' ? 'Đã hết mốc' : `Mốc: ${s.nextOffset}m`) : 'Đang tải';
+                document.getElementById('stat-attendance-detail').textContent = s.attendanceStatus || (s.streamInfo ? `Đã qua hết các mốc điểm danh` : 'Đang kết nối & tải dữ liệu livestream...');
               } else {
                 document.getElementById('stat-attendance-cd').textContent = '--:--';
                 document.getElementById('stat-attendance-next').textContent = 'Mốc kế tiếp: --';
