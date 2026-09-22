@@ -504,6 +504,9 @@
               }
               document.getElementById('stat-lixi-points').textContent = `+${s.totalRewardPoints || 0} pts`;
               document.getElementById('stat-lixi-count').textContent = `(${s.lixiClaimed?.length || 0} lần nhận)`;
+              if (data.farmerPoolSize !== undefined) {
+                document.getElementById('stat-lixi-status').textContent = `Bể Token Turnstile: ${data.farmerPoolSize || 0} sẵn sàng`;
+              }
             }
 
             // Update Logs
@@ -521,10 +524,11 @@
         let badgeColor = 'text-slate-400';
         if (l.type.includes('SUCCESS')) badgeColor = 'text-emerald-400 font-bold';
         else if (l.type.includes('ERROR')) badgeColor = 'text-rose-400 font-bold';
+        else if (l.type.includes('WARN')) badgeColor = 'text-amber-300 font-bold';
         else if (l.type.includes('WS') || l.type.includes('LIXI')) badgeColor = 'text-sky-400 font-bold';
+        else if (l.type.includes('FARMER') || l.type.includes('TURNSTILE')) badgeColor = 'text-purple-400 font-bold';
         else if (l.type.includes('DOM')) badgeColor = 'text-amber-400';
-        else if (l.type.includes('ACTION')) badgeColor = 'text-purple-400 font-bold';
-
+        else if (l.type.includes('ACTION')) badgeColor = 'text-yellow-400 font-bold';
         return `<div class="leading-relaxed">
           <span class="text-slate-600">[${l.time}]</span> 
           <span class="${badgeColor}">[${l.type}]</span> 
