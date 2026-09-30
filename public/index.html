@@ -335,8 +335,9 @@
 
         // Card
         const card = document.createElement('div');
-        card.className = 'flex items-center justify-between p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs';
+        card.className = 'p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs space-y-2';
         card.innerHTML = `
+          <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
             <div class="w-8 h-8 rounded-full bg-blue-500/20 text-blue-400 font-bold flex items-center justify-center border border-blue-500/30">
               ${acc.username.slice(0, 2).toUpperCase()}
@@ -354,6 +355,13 @@
           <button onclick="removeAccount('${acc.username}')" class="text-slate-500 hover:text-rose-400 p-1.5 transition-colors" title="Xóa tài khoản">
             ✕
           </button>
+          </div>
+          <div class="flex items-center gap-2">
+            <input data-proxy-input="${acc.username}" type="text" placeholder="${acc.proxy ? '🌐 ' + acc.proxy + ' (nhập mới để thay, để trống + Lưu để gỡ)' : 'Proxy: ip:port:user:pass (không bắt buộc)'}"
+              class="flex-1 min-w-0 bg-slate-900 border border-slate-800 rounded-lg px-2 py-1.5 text-[11px] text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500">
+            <button onclick="saveProxy('${acc.username}')" class="px-2.5 py-1.5 rounded-lg bg-blue-500/15 text-blue-300 border border-blue-500/30 hover:bg-blue-500/25 text-[11px] font-semibold">Lưu</button>
+          </div>
+          <div class="text-[10px] ${acc.proxy ? 'text-emerald-400' : 'text-slate-500'}">${acc.proxy ? '🌐 Nhận lì xì qua proxy ' + acc.proxy : 'Không dùng proxy (IP của máy)'}</div>
         `;
         container.appendChild(card);
       });
@@ -405,6 +413,24 @@
         msg.textContent = `Lỗi: ${err.message}`;
         btn.disabled = false;
         btn.classList.remove('opacity-50', 'cursor-not-allowed');
+      }
+    }
+
+    async function saveProxy(username) {
+      const input = document.querySelector(`[data-proxy-input="${username}"]`);
+      const proxy = input ? input.value.trim() : '';
+      if (!proxy && !confirm(`Gỡ proxy của ${username}?`)) return;
+      try {
+        const res = await fetch(`/api/accounts/${encodeURIComponent(username)}/proxy`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ proxy })
+        });
+        const data = await res.json();
+        if (!data.success) return alert(data.error || 'Lưu proxy thất bại');
+        fetchAccounts();
+      } catch (e) {
+        alert(`Lỗi: ${e.message}`);
       }
     }
 

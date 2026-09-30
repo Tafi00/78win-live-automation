@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const { loginAccount, listAccounts, deleteAccount, getSession } = require('./lib/auth');
+const { loginAccount, listAccounts, deleteAccount, getSession, setAccountProxy } = require('./lib/auth');
 const tracker = require('./lib/tracker');
 
 const app = express();
@@ -74,6 +74,15 @@ app.post('/api/accounts/login', async (req, res) => {
 
 app.get('/api/accounts/login-status', (req, res) => {
   res.json(loginStatus);
+});
+
+app.put('/api/accounts/:username/proxy', (req, res) => {
+  try {
+    const label = setAccountProxy(req.params.username, (req.body && req.body.proxy) || '');
+    res.json({ success: true, proxy: label });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
 });
 
 app.delete('/api/accounts/:username', (req, res) => {
