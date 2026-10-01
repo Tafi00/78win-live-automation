@@ -126,14 +126,22 @@
 
           <form id="tracker-form" class="space-y-4" onsubmit="event.preventDefault(); toggleTracker();">
             <div>
-              <label class="block text-xs font-medium text-slate-400 mb-1.5 uppercase tracking-wider">URL Livestream 78win</label>
+              <label class="block text-xs font-medium text-slate-400 mb-1.5 uppercase tracking-wider">Site</label>
+              <select id="site-select" onchange="onSiteChange(true)" class="w-full bg-slate-900 text-slate-100 font-semibold border border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 cursor-pointer">
+                <option value="78win">78win</option>
+                <option value="qq88">QQ88</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1.5 uppercase tracking-wider">URL Livestream</label>
               <div class="relative">
                 <input 
                   type="url" 
                   id="live-url" 
                   required 
                   value="https://78win-live.pages.dev/live/78winlive-idollive"
-                  placeholder="https://78win-live.pages.dev/live/..." 
+                  placeholder="https://78win-live.pages.dev/live/... hoặc https://www.qq88live.live/live/..."
+                  oninput="syncSiteFromUrl()" 
                   class="w-full bg-slate-900 text-slate-100 placeholder-slate-500 font-medium border border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-colors shadow-inner"
                 />
               </div>
@@ -200,6 +208,7 @@
               <span id="stat-lixi-count" class="text-xs text-slate-400">(0 lần nhận)</span>
             </div>
             <p id="stat-lixi-status" class="text-xs text-slate-400">SignalR Hub: Sẵn sàng</p>
+            <div id="stat-lixi-codes" class="hidden mt-2 space-y-1 max-h-32 overflow-y-auto"></div>
           </div>
         </div>
       </div>
@@ -220,7 +229,6 @@
                   type="text" 
                   id="login-user" 
                   required 
-                  value="respect97"
                   placeholder="Username" 
                   class="w-full bg-slate-900 text-slate-100 placeholder-slate-500 font-medium border border-slate-700 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors shadow-inner"
                 />
@@ -231,12 +239,17 @@
                   type="password" 
                   id="login-pass" 
                   required 
-                  value="K1ssmeyou"
                   placeholder="Password" 
                   class="w-full bg-slate-900 text-slate-100 placeholder-slate-500 font-medium border border-slate-700 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors shadow-inner"
                 />
               </div>
             </div>
+
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Proxy (không bắt buộc)</label>
+              <input type="text" id="login-proxy" placeholder="ip:port:user:pass" class="w-full bg-slate-900 text-slate-100 placeholder-slate-500 font-medium border border-slate-700 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors shadow-inner" />
+            </div>
+            <p class="text-[10px] text-slate-500">Mật khẩu được lưu mã hoá trên máy để tool tự đăng nhập lại khi phiên hết hạn. Đăng nhập cũng đi qua proxy nếu có.</p>
 
             <button 
               type="submit" 
@@ -252,6 +265,15 @@
               </div>
             </div>
           </form>
+
+          <!-- Batch login -->
+          <details class="mb-6 group">
+            <summary class="cursor-pointer text-xs font-semibold text-slate-300 hover:text-white select-none">📋 Đăng nhập hàng loạt</summary>
+            <div class="mt-2 space-y-2">
+              <textarea id="batch-lines" rows="5" placeholder="Mỗi dòng 1 tài khoản: user|pass|proxy&#10;vd: nick1|matkhau1|116.110.98.134:33965:user:pass&#10;nick2|matkhau2" class="w-full bg-slate-900 text-slate-100 placeholder-slate-500 font-medium border border-slate-700 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors shadow-inner font-mono"></textarea>
+              <button type="button" id="btn-batch-login" onclick="submitBatchLogin()" class="w-full py-2 px-4 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition-all">Đăng nhập tất cả</button>
+            </div>
+          </details>
 
           <!-- Saved Accounts List -->
           <div>
@@ -289,15 +311,52 @@
     let isTracking = false;
     let pollInterval = null;
 
+    const SITE_DEFAULT_URLS = {
+      '78win': 'https://78win-live.pages.dev/live/78winlive-idollive',
+      qq88: 'https://www.qq88live.live/live/QQ88live-idol-live-qq88'
+    };
+    const SITE_HOSTS = { '78win-live.pages.dev': '78win', 'www.qq88live.live': 'qq88', 'qq88live.live': 'qq88' };
+
+    function currentSite() {
+      return document.getElementById('site-select').value || '78win';
+    }
+
+    // Đổi site: nạp lại danh sách tài khoản của site đó; resetUrl = đổi luôn link live mặc định
+    function onSiteChange(resetUrl) {
+      const site = currentSite();
+      try { localStorage.setItem('site', site); } catch (e) {}
+      const urlInput = document.getElementById('live-url');
+      if (resetUrl && SITE_DEFAULT_URLS[site]) urlInput.value = SITE_DEFAULT_URLS[site];
+      fetchAccounts();
+    }
+
+    // Dán link QQ88 / 78win vào ô URL thì tự chọn đúng site
+    function syncSiteFromUrl() {
+      try {
+        const host = new URL(document.getElementById('live-url').value.trim()).hostname.toLowerCase();
+        const site = SITE_HOSTS[host];
+        if (site && site !== currentSite()) {
+          document.getElementById('site-select').value = site;
+          onSiteChange(false);
+        }
+      } catch (e) {}
+    }
+
     // Load initial data
     window.addEventListener('DOMContentLoaded', () => {
+      let saved = null;
+      try { saved = localStorage.getItem('site'); } catch (e) {}
+      if (saved && SITE_DEFAULT_URLS[saved]) {
+        document.getElementById('site-select').value = saved;
+        document.getElementById('live-url').value = SITE_DEFAULT_URLS[saved];
+      }
       fetchAccounts();
       startPolling();
     });
 
     async function fetchAccounts() {
       try {
-        const res = await fetch('/api/accounts');
+        const res = await fetch(`/api/accounts?site=${encodeURIComponent(currentSite())}`);
         const json = await res.json();
         renderAccounts(json.accounts || []);
       } catch (e) {
@@ -348,7 +407,7 @@
                 ${acc.vipLevel ? `<span class="px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30 text-[10px]">VIP ${acc.vipLevel}</span>` : ''}
               </div>
               <div class="text-[11px] ${acc.isValid ? 'text-emerald-400' : 'text-slate-500'}">
-                ${acc.isValid ? '✓ Session hợp lệ' : 'Chưa xác thực'}
+                ${acc.isValid ? '✓ Session hợp lệ' : 'Chưa xác thực'}${acc.autoRelogin ? ' · 🔄 Tự đăng nhập lại' : ''}
               </div>
             </div>
           </div>
@@ -370,6 +429,7 @@
     async function submitLogin() {
       const username = document.getElementById('login-user').value.trim();
       const password = document.getElementById('login-pass').value.trim();
+      const proxy = document.getElementById('login-proxy').value.trim();
       const btn = document.getElementById('btn-login-submit');
       const box = document.getElementById('login-progress-box');
       const msg = document.getElementById('login-progress-msg');
@@ -385,9 +445,10 @@
         const res = await fetch('/api/accounts/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, password })
+          body: JSON.stringify({ username, password, proxy, site: currentSite() })
         });
         const data = await res.json();
+        if (!data.success) throw new Error(data.error || 'Không bắt đầu được đăng nhập');
 
         // Poll login progress
         const checkTimer = setInterval(async () => {
@@ -399,12 +460,13 @@
             clearInterval(checkTimer);
             btn.disabled = false;
             btn.classList.remove('opacity-50', 'cursor-not-allowed');
+            fetchAccounts();
             if (st.success) {
-              msg.textContent = '🎉 Đăng nhập thành công và đã lưu session!';
+              msg.textContent = st.total > 1 ? `🎉 ${st.message}` : '🎉 Đăng nhập thành công và đã lưu session!';
+              document.getElementById('login-pass').value = '';
               setTimeout(() => { box.classList.add('hidden'); }, 3000);
-              fetchAccounts();
             } else {
-              msg.textContent = `Thất bại: ${st.error || 'Có lỗi xảy ra'}`;
+              msg.textContent = st.total > 1 ? `${st.message} Lỗi: ${st.error || ''}` : `Thất bại: ${st.error || 'Có lỗi xảy ra'}`;
             }
           }
         }, 1000);
@@ -416,12 +478,47 @@
       }
     }
 
+    async function submitBatchLogin() {
+      const lines = document.getElementById('batch-lines').value;
+      if (!lines.trim()) return;
+      const box = document.getElementById('login-progress-box');
+      const msg = document.getElementById('login-progress-msg');
+      const btns = [document.getElementById('btn-batch-login'), document.getElementById('btn-login-submit')];
+      btns.forEach(b => { b.disabled = true; b.classList.add('opacity-50', 'cursor-not-allowed'); });
+      box.classList.remove('hidden');
+      msg.textContent = 'Đang xếp hàng đăng nhập...';
+      const done = () => btns.forEach(b => { b.disabled = false; b.classList.remove('opacity-50', 'cursor-not-allowed'); });
+      try {
+        const res = await fetch('/api/accounts/login-batch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ lines, site: currentSite() })
+        });
+        const data = await res.json();
+        if (!data.success) { msg.textContent = `Lỗi: ${data.error}`; return done(); }
+        const timer = setInterval(async () => {
+          const st = await (await fetch('/api/accounts/login-status')).json();
+          if (st.message) msg.textContent = st.message;
+          if (!st.inProgress) {
+            clearInterval(timer);
+            done();
+            fetchAccounts();
+            msg.textContent = st.error ? `${st.message} Lỗi: ${st.error}` : `🎉 ${st.message}`;
+            if (!st.error) document.getElementById('batch-lines').value = '';
+          }
+        }, 1000);
+      } catch (e) {
+        msg.textContent = `Lỗi: ${e.message}`;
+        done();
+      }
+    }
+
     async function saveProxy(username) {
       const input = document.querySelector(`[data-proxy-input="${username}"]`);
       const proxy = input ? input.value.trim() : '';
       if (!proxy && !confirm(`Gỡ proxy của ${username}?`)) return;
       try {
-        const res = await fetch(`/api/accounts/${encodeURIComponent(username)}/proxy`, {
+        const res = await fetch(`/api/accounts/${encodeURIComponent(username)}/proxy?site=${encodeURIComponent(currentSite())}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ proxy })
@@ -437,7 +534,7 @@
     async function removeAccount(username) {
       if (!confirm(`Bạn có chắc chắn muốn xóa session của ${username}?`)) return;
       try {
-        await fetch(`/api/accounts/${username}`, { method: 'DELETE' });
+        await fetch(`/api/accounts/${encodeURIComponent(username)}?site=${encodeURIComponent(currentSite())}`, { method: 'DELETE' });
         fetchAccounts();
       } catch (e) {
         console.error(e);
@@ -538,6 +635,13 @@
               }
               document.getElementById('stat-lixi-points').textContent = `+${s.totalRewardPoints || 0} pts`;
               document.getElementById('stat-lixi-count').textContent = `(${s.lixiClaimed?.length || 0} lần nhận)`;
+              // QQ88 trả mã Code -> hiện danh sách mã để copy
+              const codes = (s.lixiClaimed || []).filter(c => c.code);
+              const codesBox = document.getElementById('stat-lixi-codes');
+              codesBox.classList.toggle('hidden', !codes.length);
+              const esc = v => String(v).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+              const html = codes.slice().reverse().map(c => `<div class="flex items-center justify-between gap-2 text-[11px] bg-slate-950 border border-slate-800 rounded px-2 py-1"><span class="text-slate-400">${esc(c.username)}</span><code class="text-amber-300 font-bold select-all">${esc(c.code)}</code><button type="button" data-code="${esc(c.code)}" onclick="navigator.clipboard.writeText(this.dataset.code)" class="text-blue-300 hover:text-white">Copy</button></div>`).join('');
+              if (codesBox.dataset.html !== html) { codesBox.innerHTML = html; codesBox.dataset.html = html; }
               if (data.farmerPoolSize !== undefined) {
                 document.getElementById('stat-lixi-status').textContent = `Bể Token Turnstile: ${data.farmerPoolSize || 0} sẵn sàng`;
               }
