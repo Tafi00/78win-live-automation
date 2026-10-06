@@ -130,6 +130,7 @@
               <select id="site-select" onchange="onSiteChange(true)" class="w-full bg-slate-900 text-slate-100 font-semibold border border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 cursor-pointer">
                 <option value="78win">78win</option>
                 <option value="qq88">QQ88</option>
+                <option value="mb66">MB66</option>
               </select>
             </div>
             <div>
@@ -140,7 +141,7 @@
                   id="live-url" 
                   required 
                   value="https://78win-live.pages.dev/live/78winlive-idollive"
-                  placeholder="https://78win-live.pages.dev/live/... hoặc https://www.qq88live.live/live/..."
+                  placeholder="https://78win-live.pages.dev/live/... hoặc https://mb66-live.pages.dev/live/..."
                   oninput="syncSiteFromUrl()" 
                   class="w-full bg-slate-900 text-slate-100 placeholder-slate-500 font-medium border border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-colors shadow-inner"
                 />
@@ -313,9 +314,10 @@
 
     const SITE_DEFAULT_URLS = {
       '78win': 'https://78win-live.pages.dev/live/78winlive-idollive',
-      qq88: 'https://www.qq88live.live/live/QQ88live-idol-live-qq88'
+      qq88: 'https://www.qq88live.live/live/QQ88live-idol-live-qq88',
+      mb66: 'https://mb66-live.pages.dev/live/mb66live-idollivemb'
     };
-    const SITE_HOSTS = { '78win-live.pages.dev': '78win', 'www.qq88live.live': 'qq88', 'qq88live.live': 'qq88' };
+    const SITE_HOSTS = { '78win-live.pages.dev': '78win', 'www.qq88live.live': 'qq88', 'qq88live.live': 'qq88', 'mb66-live.pages.dev': 'mb66' };
 
     function currentSite() {
       return document.getElementById('site-select').value || '78win';
