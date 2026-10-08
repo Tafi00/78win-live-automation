@@ -117,6 +117,8 @@ async function createWindow() {
   if (bootError) {
     await mainWindow.loadURL(errorPageHtml('Lỗi khởi động dịch vụ nội bộ', String(bootError)));
   } else {
+    // Bỏ cache để UI luôn load bản mới sau khi repack/redeploy
+    await mainWindow.webContents.session.clearCache();
     await loadApp();
   }
 

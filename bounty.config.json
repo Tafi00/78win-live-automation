@@ -1,0 +1,8 @@
+{
+  "authorized": true,
+  "note": "BBP-2026-001 v1.1 — BTC ủy quyền full abuse simulation 07/10/2026. Active probe + farm trên tài khoản test.",
+  "rpsPerHost": 2,
+  "farmMode": true,
+  "farmMaxRpsPerHost": 20,
+  "farmMaxAccounts": 50
+}

@@ -7,3 +7,5 @@ test-login.js
 /tracker.js
 .DS_Store
 *.log
+reports/
+bounty.config.json
