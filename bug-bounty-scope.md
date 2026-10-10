@@ -1,16 +1,16 @@
 # Bug Bounty Program — Scope & Rules of Engagement
 
-> **TRẠNG THÁI: ÁP DỤNG NỘI BỘ — BTC ỦY QUYỀN FULL ABUSE SIMULATION (07/10/2026).** BTC (bên tổ chức/vận hành) cho phép mô phỏng tấn công quy mô lớn trên tài sản §2 để đo resilience. Vẫn giữ §5 với hành vi nhắm vào **dữ liệu/tài khoản người dùng thật** và hạ tầng bên thứ ba.
+> **TRẠNG THÁI: BẢN CHÍNH THỨC — CÓ HIỆU LỰC TỪ 07/10/2026.** BTC (bên tổ chức/vận hành) **cấp toàn quyền cho thí sinh** thực hiện kiểm thử và mô phỏng tấn công (abuse simulation) trên toàn bộ tài sản §2 để đo resilience. Duy nhất ràng buộc §5: cấm nhắm vào **dữ liệu/tài khoản người dùng thật** và hạ tầng bên thứ ba.
 
 | Trường | Giá trị |
 |---|---|
 | Document ID | `BBP-2026-001` |
-| Phiên bản | `1.0` |
+| Phiên bản | `1.1` |
 | Ngày ban hành | `07/10/2026` |
 | Ngày hết hiệu lực | `07/10/2027` |
-| Chương trình | Bug Bounty — `78WIN / MB66` *(tên chương trình; pháp nhân xác nhận bên dưới)* |
-| Đơn vị phát hành | `[TÊN PHÁP NHÂN / ĐƠN VỊ VẬN HÀNH]` *(bắt buộc điền trước khi ký)* |
-| Liên hệ security | `[security@example.com]` / `[PGP key]` *(bắt buộc điền trước khi ký)* |
+| Chương trình | Bug Bounty — `78WIN / MB66` |
+| Đơn vị phát hành | `TAFI` |
+| Liên hệ security | `security@tafidev.vn` |
 | Kênh nhận report | `reports/` trong repo + ticket nội bộ *(URL public: điền khi mở cho researcher ngoài)* |
 
 ---
@@ -90,27 +90,5 @@ Bên vận hành sẽ **không** khởi kiện dân sự/hình sự đối với
 
 ## 10. Hiệu lực & Chấm dứt
 
-Document có hiệu lực từ ngày ký đến ngày hết hạn hoặc khi bị thu hồi bằng văn bản. Bên vận hành có thể cập nhật scope; phiên bản mới nhất công bố tại `[repo nội bộ]` là bản áp dụng.
+Document có hiệu lực từ ngày ban hành đến ngày hết hạn hoặc khi bị thu hồi bằng văn bản. Bên vận hành có thể cập nhật scope; phiên bản mới nhất công bố tại `[repo nội bộ]` là bản áp dụng.
 
----
-
-## Chữ ký
-
-**ĐẠI DIỆN BÊN VẬN HÀNH**
-
-```
-Họ tên:        ______________________________
-Chức danh:     ______________________________
-Đơn vị:        ______________________________
-Ngày ký:       ______________________________
-Chữ ký/Dấu:    ______________________________
-```
-
-**RESEARCHER (xác nhận đã đọc & đồng ý RoE)**
-
-```
-Họ tên/Alias:  ______________________________
-Email:         ______________________________
-Ngày:          ______________________________
-Chữ ký:        ______________________________
-```
