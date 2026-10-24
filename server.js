@@ -43,22 +43,30 @@ function enqueueLogins(items, site) {
   if (loginStatus.total === items.length) runLoginQueue();
 }
 
+// Login giờ chủ yếu đi HTTP (không mở Chrome) → chạy song song được. Giới hạn 5 luồng để
+// không rate-limit /auth/captcha. Nếu fallback Playwright thì vẫn chịu được vì mỗi luồng mở
+// Chrome riêng — thực tế hiếm khi fallback.
+const LOGIN_CONCURRENCY = 5;
 async function runLoginQueue() {
-  while (loginQueue.length) {
-    const job = loginQueue.shift();
-    loginStatus.username = job.username;
-    const prefix = loginStatus.total > 1 ? `(${loginStatus.done + 1}/${loginStatus.total}) ` : '';
-    try {
-      await loginAccount(job.username, job.password, (prog) => {
-        loginStatus.step = prog.step;
-        loginStatus.message = prefix + prog.message;
-      }, { site: job.site, proxy: job.proxy });
-      loginStatus.results.push({ username: job.username, success: true });
-    } catch (err) {
-      loginStatus.results.push({ username: job.username, success: false, error: err.message });
+  const workers = Array.from({ length: LOGIN_CONCURRENCY }, async () => {
+    while (loginQueue.length) {
+      const job = loginQueue.shift();
+      if (!job) return;
+      loginStatus.username = job.username;
+      const prefix = loginStatus.total > 1 ? `(${loginStatus.done + 1}/${loginStatus.total}) ` : '';
+      try {
+        await loginAccount(job.username, job.password, (prog) => {
+          loginStatus.step = prog.step;
+          loginStatus.message = prefix + prog.message;
+        }, { site: job.site, proxy: job.proxy });
+        loginStatus.results.push({ username: job.username, success: true });
+      } catch (err) {
+        loginStatus.results.push({ username: job.username, success: false, error: err.message });
+      }
+      loginStatus.done++;
     }
-    loginStatus.done++;
-  }
+  });
+  await Promise.all(workers);
   const failed = loginStatus.results.filter(r => !r.success);
   loginStatus.inProgress = false;
   loginStatus.success = failed.length === 0;

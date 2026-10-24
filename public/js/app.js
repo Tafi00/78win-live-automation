@@ -297,22 +297,18 @@ async function farmSaveLinks() {
 async function farmCreateClones() {
   const btn = $('btn-farm-clone');
   const count = +$('farm-count').value || 5, threads = +$('farm-concurrency').value || 6;
-  const password = $('farm-password').value.trim(), casinoAcc = $('farm-casino-acc').value.trim();
+  const password = $('farm-password').value.trim() || 'Abc12345!';
+  let casinoAcc = $('farm-casino-acc').value.trim();
+  let casinoBank = $('farm-casino-bank').value.trim();
+  // trống → tự random: acc game theo site, 4 số cuối bank ngẫu nhiên
+  if (!casinoAcc) casinoAcc = 'ag' + Math.random().toString(36).slice(2, 10);
+  if (!casinoBank) casinoBank = String(Math.floor(1000 + Math.random() * 9000));
   const site = currentSite();
-  let bad = [];
-  if (!password) bad.push('farm-password');
-  if (site === '78win' && !casinoAcc) bad.push('farm-casino-acc');
-  if (site === '78win' && !$('farm-casino-bank').value.trim()) bad.push('farm-casino-bank');
-  if (bad.length) {
-    bad.forEach(markInvalid);
-    farmLog(`❌ site=${site} — thiếu: ${bad.map(id => $(id)?.previousElementSibling?.textContent?.trim() || id).join(', ')}`, 'err');
-    return;
-  }
+  farmLog(`▶ Reg ${count} acc ${site} · ${threads} luồng · casino=${casinoAcc} bank=${casinoBank}`, 'info');
   setBusy(btn, true);
-  farmLog(`▶ Reg ${count} acc ${currentSite()} · ${threads} luồng`, 'info');
   const t0 = Date.now();
   try {
-    const j = await api('/api/bounty/farm/clones', { method: 'POST', body: JSON.stringify({ site: currentSite(), count, password, casinoAccount: casinoAcc, casinoBank: $('farm-casino-bank').value.trim(), concurrency: threads, proxies: $('farm-proxies').value }) });
+    const j = await api('/api/bounty/farm/clones', { method: 'POST', body: JSON.stringify({ site: currentSite(), count, password, casinoAccount: casinoAcc, casinoBank, concurrency: threads, proxies: $('farm-proxies').value }) });
     const rows = j.data || [], ok = rows.filter(r => r.success), fail = rows.filter(r => !r.success);
     ok.forEach(r => farmLog(`✅ ${r.username} → pool`, 'ok'));
     fail.forEach(r => farmLog(`❌ ${r.username}: ${(r.error || '').slice(0, 80)}`, 'err'));
